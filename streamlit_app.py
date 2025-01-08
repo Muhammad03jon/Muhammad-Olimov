@@ -96,7 +96,7 @@ with st.expander('Входные данные'):
     st.dataframe(input_diabetes)
 
 # Загрузка модели
-model = joblib.load(r"C:\Users\MSI Cyborg\MyJupyterNotebook\Уроки Zypl.ai\ML\Домашки\catboost_model.pkl")  # Замените на путь к вашей модели
+model = joblib.load(r"C:\Users\MSI Cyborg\Downloads\catboost_model (1).pkl")  # Замените на путь к вашей модели
 
 # Прогнозирование
 input_row = input_df
