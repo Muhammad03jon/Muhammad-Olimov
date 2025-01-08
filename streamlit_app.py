@@ -12,7 +12,7 @@ import plotly.express as px
 st.title('Прогнозирование диабета')
 
 # Загрузка данных из локального файла
-file_path = r"https://github.com/Muhammad03jon/Muhammad-Olimov/blob/master/diabetes%20(2).csv"# Замените на свой путь
+file_path = r"https://raw.githubusercontent.com/Muhammad03jon/Muhammad-Olimov/refs/heads/master/diabetes%20(2).csv"# Замените на свой путь
 df = pd.read_csv(file_path)
 
 # Раздел для отображения данных
