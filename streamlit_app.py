@@ -58,7 +58,7 @@ input_data_scaled = scaler.fit_transform(input_data)
 st.title("Обучение модели для предсказания диабета")
 
 # Указываем путь к файлу или данные прямо в коде
-file_path = "C:\Users\MSI Cyborg\MyJupyterNotebook\Уроки Zypl.ai\ML\Домашки\diabetes (2).csv"  # Укажите путь к вашему файлу
+file_path = "C:\\Users\\MSI Cyborg\\MyJupyterNotebook\\Уроки Zypl.ai\\ML\\Домашки\\diabetes (2).csv"  # Укажите путь к вашему файлу
 
 # Загружаем данные
 df = pd.read_csv(file_path)
