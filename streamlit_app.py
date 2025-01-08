@@ -87,7 +87,7 @@ data = {
 input_data = pd.DataFrame([data])
 
 # Загрузка обученной модели
-model = joblib.load("catboost_model.pkl")  # Замените на путь к вашей модели
+model = joblib.load(""C:\Users\MSI Cyborg\MyJupyterNotebook\Уроки Zypl.ai\ML\Домашки\catboost_model.pkl"")  # Замените на путь к вашей модели
 
 # Нормализация данных
 scaler = StandardScaler()
