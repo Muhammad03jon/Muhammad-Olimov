@@ -1,4 +1,4 @@
-# 📦 Streamlit App Starter Kit 
+Muhammad Olimov's first project
 ```
 ⬆️ (Replace above with your app's name)
 ```
