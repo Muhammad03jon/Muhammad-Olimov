@@ -12,7 +12,7 @@ import plotly.express as px
 st.title('Прогнозирование диабета')
 
 # Загрузка данных из локального файла
-file_path = r"C:/Users/MSI Cyborg/MyJupyterNotebook/Уроки Zypl.ai/ML/Домашки/diabetes (2).csv"  # Замените на свой путь
+file_path = r"C:\Users\MSI Cyborg\MyJupyterNotebook\Уроки Zypl.ai\ML\Домашки\diabetes (2).csv"# Замените на свой путь
 df = pd.read_csv(file_path)
 
 # Раздел для отображения данных
