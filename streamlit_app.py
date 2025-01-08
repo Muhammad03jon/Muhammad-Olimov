@@ -14,6 +14,7 @@ st.markdown("""
     <style>
     .stApp {
         background-color: #f0f0f0;
+        padding: 20px;
     }
     .stTitle {
         font-size: 40px;
@@ -23,6 +24,9 @@ st.markdown("""
     }
     .stTextInput {
         font-size: 18px;
+    }
+    .css-1p4t15l {
+        background-color: #d1e7dd !important;
     }
     </style>
 """, unsafe_allow_html=True)
