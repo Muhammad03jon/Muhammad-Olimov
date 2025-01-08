@@ -4,97 +4,98 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+import joblib
 
-# Заголовок приложения
+st.set_page_config(page_title="Прогнозирование наличия диабета", layout="wide")
 st.title("Прогнозирование наличия диабета")
 
-# Ввод данных с помощью виджетов Streamlit
-age = st.number_input("Возраст", min_value=18, max_value=100, value=30)
-gender = st.selectbox("Пол", ("Мужчина", "Женщина"))
-bmi = st.number_input("Индекс массы тела (BMI)", min_value=10.0, max_value=50.0, value=25.0)
-sbp = st.number_input("Систолическое давление (SBP)", min_value=80, max_value=200, value=120)
-dbp = st.number_input("Диастолическое давление (DBP)", min_value=40, max_value=120, value=80)
-fpg = st.number_input("Уровень глюкозы натощак (FPG)", min_value=50, max_value=200, value=100)
-chol = st.number_input("Общий холестерин (Chol)", min_value=100, max_value=400, value=200)
-tri = st.number_input("Триглицериды (Tri)", min_value=50, max_value=300, value=150)
-hdl = st.number_input("HDL холестерин", min_value=30, max_value=100, value=50)
-ldl = st.number_input("LDL холестерин", min_value=50, max_value=200, value=100)
-alt = st.number_input("Аланинаминотрансфераза (ALT)", min_value=5, max_value=50, value=20)
-bun = st.number_input("Блочный азот мочевины (BUN)", min_value=5, max_value=30, value=15)
-ccr = st.number_input("Креатининовый клиренс (CCR)", min_value=60, max_value=150, value=90)
-ffpg = st.number_input("Сахар в крови после еды (FFPG)", min_value=50, max_value=200, value=100)
-smoking = st.selectbox("Курите ли вы?", ("Да", "Нет"))
-drinking = st.selectbox("Употребляете ли вы алкоголь?", ("Да", "Нет"))
-family_history = st.selectbox("Есть ли в вашей семье диабет?", ("Да", "Нет"))
+# Стилизация для визуальной привлекательности
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f0f0f0;
+    }
+    .stTitle {
+        font-size: 40px;
+        font-weight: bold;
+        text-align: center;
+        color: #1e3d58;
+    }
+    .stTextInput {
+        font-size: 18px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Преобразование бинарных значений в 0 и 1
+# Левый верхний угол - место ввода данных
+with st.container():
+    st.sidebar.header("Введите данные для прогноза")
+
+    # Ввод данных с помощью слайдеров
+    age = st.sidebar.slider("Возраст", min_value=18, max_value=100, value=30, step=1)
+    bmi = st.sidebar.slider("Индекс массы тела (BMI)", min_value=10.0, max_value=50.0, value=25.0, step=0.1)
+    income = st.sidebar.slider("Доход", min_value=0, max_value=1000000, value=50000, step=1000)
+    genhlth = st.sidebar.slider("Общее состояние здоровья", min_value=1, max_value=5, value=3)
+    menthlth = st.sidebar.slider("Психическое здоровье", min_value=0, max_value=30, value=0)
+    physhlth = st.sidebar.slider("Физическое здоровье", min_value=0, max_value=30, value=0)
+
+    # Ввод бинарных признаков
+    highbp = st.sidebar.selectbox("Есть ли у вас высокое давление?", ("Да", "Нет"))
+    highchol = st.sidebar.selectbox("Есть ли у вас повышенный холестерин?", ("Да", "Нет"))
+    cholcheck = st.sidebar.selectbox("Проверялись ли вы на холестерин?", ("Да", "Нет"))
+    smoker = st.sidebar.selectbox("Курите ли вы?", ("Да", "Нет"))
+    stroke = st.sidebar.selectbox("Был ли у вас инсульт?", ("Да", "Нет"))
+    heartdisease = st.sidebar.selectbox("Есть ли у вас заболевания сердца?", ("Да", "Нет"))
+    physactivity = st.sidebar.selectbox("Занимаетесь ли вы физической активностью?", ("Да", "Нет"))
+    fruits = st.sidebar.selectbox("Употребляете ли вы фрукты ежедневно?", ("Да", "Нет"))
+    veggies = st.sidebar.selectbox("Употребляете ли вы овощи ежедневно?", ("Да", "Нет"))
+    hvyalcohol = st.sidebar.selectbox("Употребляете ли вы много алкоголя?", ("Да", "Нет"))
+    anyhealthcare = st.sidebar.selectbox("Есть ли у вас доступ к медицинской помощи?", ("Да", "Нет"))
+    nodocbcost = st.sidebar.selectbox("Есть ли у вас проблемы с доступом к врачу из-за стоимости?", ("Да", "Нет"))
+    diffwalk = st.sidebar.selectbox("Есть ли проблемы с ходьбой?", ("Да", "Нет"))
+    sex = st.sidebar.selectbox("Пол", ("Мужчина", "Женщина"))
+
+# Преобразование данных в 0 и 1
 data = {
     "Age": age,
-    "Gender": 1 if gender == "Мужчина" else 0,
     "BMI": bmi,
-    "SBP": sbp,
-    "DBP": dbp,
-    "FPG": fpg,
-    "Chol": chol,
-    "Tri": tri,
-    "HDL": hdl,
-    "LDL": ldl,
-    "ALT": alt,
-    "BUN": bun,
-    "CCR": ccr,
-    "FFPG": ffpg,
-    "Smoking": 1 if smoking == "Да" else 0,
-    "Drinking": 1 if drinking == "Да" else 0,
-    "FamilyHistory": 1 if family_history == "Да" else 0
+    "Income": income,
+    "GenHlth": genhlth,
+    "MentHlth": menthlth,
+    "PhysHlth": physhlth,
+    "HighBP": 1 if highbp == "Да" else 0,
+    "HighChol": 1 if highchol == "Да" else 0,
+    "CholCheck": 1 if cholcheck == "Да" else 0,
+    "Smoker": 1 if smoker == "Да" else 0,
+    "Stroke": 1 if stroke == "Да" else 0,
+    "HeartDiseaseorAttack": 1 if heartdisease == "Да" else 0,
+    "PhysActivity": 1 if physactivity == "Да" else 0,
+    "Fruits": 1 if fruits == "Да" else 0,
+    "Veggies": 1 if veggies == "Да" else 0,
+    "HvyAlcoholConsump": 1 if hvyalcohol == "Да" else 0,
+    "AnyHealthcare": 1 if anyhealthcare == "Да" else 0,
+    "NoDocbcCost": 1 if nodocbcost == "Да" else 0,
+    "DiffWalk": 1 if diffwalk == "Да" else 0,
+    "Sex": 1 if sex == "Мужчина" else 0
 }
 
 # Преобразование в DataFrame
 input_data = pd.DataFrame([data])
 
+# Загрузка обученной модели
+model = joblib.load("catboost_model.pkl")  # Замените на путь к вашей модели
+
 # Нормализация данных
 scaler = StandardScaler()
 input_data_scaled = scaler.fit_transform(input_data)
 
-st.title("Обучение модели для предсказания диабета")
-
-# Указываем путь к файлу или данные прямо в коде
-file_path = "C:\\Users\\MSI Cyborg\\MyJupyterNotebook\\Уроки Zypl.ai\\ML\\Домашки\\diabetes (2).csv"  # Укажите путь к вашему файлу
-
-# Загружаем данные
-df = pd.read_csv(file_path)
-
-# Отображаем первые 5 строк данных
-st.write("Загруженные данные:")
-st.dataframe(df.head())
-
-# Разделяем данные на признаки и целевую переменную
-X = df.drop(columns=['Diabetes'])  # Удаляем столбец target (предположим, что это ваша целевая переменная)
-y = df['Diabetes']  # Целевая переменная
-
-# Нормализуем данные
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-# Разделяем данные на обучающую и тестовую выборки
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
-
-# Создаем и обучаем модель
-model = CatBoostClassifier(iterations=150, l2_leaf_reg=6, learning_rate=0.05, max_depth=6, rsm=0.3, verbose=0)
-model.fit(X_train, y_train)
-
-# Прогнозы на тестовой выборке
-y_pred = model.predict(X_test)
-
-# Показываем результаты
-st.write("Прогнозы на тестовой выборке:", y_pred)
-
-# Можете также показать метрики качества
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
-f1 = f1_score(y_test, y_pred)
-
-st.write(f"Accuracy: {accuracy:.3f}")
-st.write(f"Precision: {precision:.3f}")
-st.write(f"Recall: {recall:.3f}")
-st.write(f"F1-Score: {f1:.3f}")
+# Когда пользователь нажимает кнопку для предсказания
+if st.sidebar.button('Предсказать'):
+    # Применение модели
+    prediction = model.predict(input_data_scaled)
+    
+    # Отображение результата
+    if prediction[0] == 1:
+        st.success("Предсказание: Диабет")
+    else:
+        st.success("Предсказание: Отсутствие диабета")
