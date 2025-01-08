@@ -5,102 +5,130 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
+import plotly.express as px
 
-st.set_page_config(page_title="Прогнозирование наличия диабета", layout="wide")
-st.title("Прогнозирование наличия диабета")
 
-# Стилизация для визуальной привлекательности
-st.markdown("""
-    <style>
-    .stApp {
-        background-color: #f0f0f0;
-        padding: 20px;
-    }
-    .stTitle {
-        font-size: 40px;
-        font-weight: bold;
-        text-align: center;
-        color: #1e3d58;
-    }
-    .stTextInput {
-        font-size: 18px;
-    }
-    .css-1p4t15l {
-        background-color: #d1e7dd !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Заголовок приложения
+st.title('Прогнозирование диабета')
 
-# Левый верхний угол - место ввода данных
-with st.container():
-    st.sidebar.header("Введите данные для прогноза")
+# Загрузка данных из локального файла
+file_path = "C:/Users/MSI Cyborg/MyJupyterNotebook/Уроки Zypl.ai/ML/Домашки/diabetes (2).csv"  # Замените на свой путь
+df = pd.read_csv(file_path)
 
-    # Ввод данных с помощью слайдеров
-    age = st.sidebar.slider("Возраст", min_value=18, max_value=100, value=30, step=1)
-    bmi = st.sidebar.slider("Индекс массы тела (BMI)", min_value=10.0, max_value=50.0, value=25.0, step=0.1)
-    income = st.sidebar.slider("Доход", min_value=0, max_value=1000000, value=50000, step=1000)
-    genhlth = st.sidebar.slider("Общее состояние здоровья", min_value=1, max_value=5, value=3)
-    menthlth = st.sidebar.slider("Психическое здоровье", min_value=0, max_value=30, value=0)
-    physhlth = st.sidebar.slider("Физическое здоровье", min_value=0, max_value=30, value=0)
+# Раздел для отображения данных
+with st.expander('Данные'):
+    st.write("Признаки (X):")
+    X_raw = df.drop('Diabetes', axis=1)  # Убираем столбец 'Diabetes'
+    st.dataframe(X_raw)
 
-    # Ввод бинарных признаков
-    highbp = st.sidebar.selectbox("Есть ли у вас высокое давление?", ("Да", "Нет"))
-    highchol = st.sidebar.selectbox("Есть ли у вас повышенный холестерин?", ("Да", "Нет"))
-    cholcheck = st.sidebar.selectbox("Проверялись ли вы на холестерин?", ("Да", "Нет"))
-    smoker = st.sidebar.selectbox("Курите ли вы?", ("Да", "Нет"))
-    stroke = st.sidebar.selectbox("Был ли у вас инсульт?", ("Да", "Нет"))
-    heartdisease = st.sidebar.selectbox("Есть ли у вас заболевания сердца?", ("Да", "Нет"))
-    physactivity = st.sidebar.selectbox("Занимаетесь ли вы физической активностью?", ("Да", "Нет"))
-    fruits = st.sidebar.selectbox("Употребляете ли вы фрукты ежедневно?", ("Да", "Нет"))
-    veggies = st.sidebar.selectbox("Употребляете ли вы овощи ежедневно?", ("Да", "Нет"))
-    hvyalcohol = st.sidebar.selectbox("Употребляете ли вы много алкоголя?", ("Да", "Нет"))
-    anyhealthcare = st.sidebar.selectbox("Есть ли у вас доступ к медицинской помощи?", ("Да", "Нет"))
-    nodocbcost = st.sidebar.selectbox("Есть ли у вас проблемы с доступом к врачу из-за стоимости?", ("Да", "Нет"))
-    diffwalk = st.sidebar.selectbox("Есть ли проблемы с ходьбой?", ("Да", "Нет"))
-    sex = st.sidebar.selectbox("Пол", ("Мужчина", "Женщина"))
+    st.write("Целевая переменная (y):")
+    y_raw = df['Diabetes']
+    st.dataframe(y_raw)
 
-# Преобразование данных в 0 и 1
+# Раздел для ввода данных пользователем
+with st.sidebar:
+    st.header("Введите признаки:")
+    age = st.slider('Возраст', 21, 100, 30)
+    gender = st.selectbox('Пол', ('Мужской', 'Женский'))
+    bmi = st.slider('Индекс массы тела (BMI)', 10.0, 70.0, 25.0)
+    sbp = st.slider('Систолическое артериальное давление (SBP)', 80, 200, 120)
+    dbp = st.slider('Диастолическое артериальное давление (DBP)', 40, 120, 80)
+    fpg = st.slider('Глюкоза натощак (FPG)', 50, 200, 100)
+    chol = st.slider('Общий холестерин (Chol)', 100, 400, 200)
+    tri = st.slider('Триглицериды (Tri)', 50, 400, 150)
+    hdl = st.slider('Холестерин высокой плотности (HDL)', 20, 100, 50)
+    ldl = st.slider('Холестерин низкой плотности (LDL)', 50, 200, 100)
+    alt = st.slider('Аланинаминотрансфераза (ALT)', 10, 100, 20)
+    bun = st.slider('Мочевина (BUN)', 5, 50, 20)
+    ccr = st.slider('Креатининовый клиренс (CCR)', 30, 150, 60)
+    ffpg = st.slider('Глюкоза в крови на пальце (FFPG)', 50, 200, 100)
+    smoking = st.selectbox('Курите ли вы?', ('Нет', 'Да'))
+    drinking = st.selectbox('Употребляете ли вы алкоголь?', ('Нет', 'Да'))
+    family_history = st.selectbox('Есть ли в семье диабет?', ('Нет', 'Да'))
+
+# Визуализация данных
+st.subheader('Визуализация данных')
+fig = px.scatter(
+    df,
+    x='BMI',
+    y='Age',
+    color='Diabetes',
+    title='Индекс массы тела (BMI) и возраст по наличию диабета'
+)
+st.plotly_chart(fig)
+
+fig2 = px.histogram(
+    df, 
+    x='FPG', 
+    nbins=30, 
+    title='Распределение глюкозы натощак (FPG)'
+)
+st.plotly_chart(fig2)
+
+# Подготовка данных
 data = {
-    "Age": age,
-    "BMI": bmi,
-    "Income": income,
-    "GenHlth": genhlth,
-    "MentHlth": menthlth,
-    "PhysHlth": physhlth,
-    "HighBP": 1 if highbp == "Да" else 0,
-    "HighChol": 1 if highchol == "Да" else 0,
-    "CholCheck": 1 if cholcheck == "Да" else 0,
-    "Smoker": 1 if smoker == "Да" else 0,
-    "Stroke": 1 if stroke == "Да" else 0,
-    "HeartDiseaseorAttack": 1 if heartdisease == "Да" else 0,
-    "PhysActivity": 1 if physactivity == "Да" else 0,
-    "Fruits": 1 if fruits == "Да" else 0,
-    "Veggies": 1 if veggies == "Да" else 0,
-    "HvyAlcoholConsump": 1 if hvyalcohol == "Да" else 0,
-    "AnyHealthcare": 1 if anyhealthcare == "Да" else 0,
-    "NoDocbcCost": 1 if nodocbcost == "Да" else 0,
-    "DiffWalk": 1 if diffwalk == "Да" else 0,
-    "Sex": 1 if sex == "Мужчина" else 0
+    'Age': age,
+    'Gender': gender,
+    'BMI': bmi,
+    'SBP': sbp,
+    'DBP': dbp,
+    'FPG': fpg,
+    'Chol': chol,
+    'Tri': tri,
+    'HDL': hdl,
+    'LDL': ldl,
+    'ALT': alt,
+    'BUN': bun,
+    'CCR': ccr,
+    'FFPG': ffpg,
+    'Smoking': smoking,
+    'Drinking': drinking,
+    'FamilyHistory': family_history
 }
 
-# Преобразование в DataFrame
-input_data = pd.DataFrame([data])
+input_df = pd.DataFrame(data, index=[0])
+input_diabetes = pd.concat([input_df, X_raw], axis=0)
 
-# Загрузка обученной модели
-model = joblib.load(model = joblib.load("C:\\Users\\MSI Cyborg\\MyJupyterNotebook\\Уроки Zypl.ai\\ML\\Домашки\\catboost_model.pkl")
-)  # Замените на путь к вашей модели
+with st.expander('Входные данные'):
+    st.write('**Введенные данные**')
+    st.dataframe(input_df)
+    st.write('**Совмещенные данные** (входные данные + оригинальные данные)')
+    st.dataframe(input_diabetes)
 
-# Нормализация данных
-scaler = StandardScaler()
-input_data_scaled = scaler.fit_transform(input_data)
+# Загрузка модели
+model = joblib.load('catboost_model.pkl')  # Замените на путь к вашей модели
 
-# Когда пользователь нажимает кнопку для предсказания
-if st.sidebar.button('Предсказать'):
-    # Применение модели
-    prediction = model.predict(input_data_scaled)
-    
-    # Отображение результата
-    if prediction[0] == 1:
-        st.success("Предсказание: Диабет")
-    else:
-        st.success("Предсказание: Отсутствие диабета")
+# Прогнозирование
+input_row = input_df
+prediction = model.predict(input_row)
+prediction_proba = model.predict_proba(input_row)
+
+# Вероятности предсказания
+df_prediction_proba = pd.DataFrame(prediction_proba, columns=['Нет диабета', 'Диабет'])
+
+# Результаты предсказания
+st.subheader('Предсказания вероятностей')
+st.dataframe(
+    df_prediction_proba,
+    column_config={
+        'Нет диабета': st.column_config.ProgressColumn(
+            'Нет диабета',
+            format='%f',
+            width='medium',
+            min_value=0,
+            max_value=1
+        ),
+        'Диабет': st.column_config.ProgressColumn(
+            'Диабет',
+            format='%f',
+            width='medium',
+            min_value=0,
+            max_value=1
+        ),
+    },
+    hide_index=True
+)
+
+# Вывод финального предсказания
+diabetes_status = ['Нет диабета', 'Диабет']
+st.success(f"Предсказанный результат: **{diabetes_status[prediction][0]}**")
