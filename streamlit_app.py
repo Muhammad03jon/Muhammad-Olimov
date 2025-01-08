@@ -81,7 +81,8 @@ if uploaded_file is not None:
     X_test_scaled = scaler.transform(X_test)
 
     # Инициализация модели
-    model = CatBoostClassifier('iterations': 150, 'l2_leaf_reg': 6, 'learning_rate': 0.05, 'max_depth': 6, 'rsm': 0.3, verbose=0)
+    model = CatBoostClassifier(iterations=150, l2_leaf_reg=6, learning_rate=0.05, max_depth=6, rsm=0.3, verbose=0)
+
 
     # Обучение модели
     model.fit(X_train_scaled, y_train)
