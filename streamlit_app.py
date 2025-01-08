@@ -55,43 +55,46 @@ input_data = pd.DataFrame([data])
 scaler = StandardScaler()
 input_data_scaled = scaler.fit_transform(input_data)
 
-st.title("Обучение модели с загруженными данными")
+st.title("Обучение модели для предсказания диабета")
 
-# Загружаем файл
-uploaded_file = st.file_uploader("Загрузите файл CSV", type=["csv"])
+# Указываем путь к файлу или данные прямо в коде
+file_path = '"C:\Users\MSI Cyborg\MyJupyterNotebook\Уроки Zypl.ai\ML\Домашки\diabetes (2).csv"'  # Укажите путь к вашему файлу
 
-if uploaded_file is not None:
-    # Читаем загруженные данные
-    df = pd.read_csv(uploaded_file)
-    
-    # Показываем данные
-    st.write("Данные из файла:")
-    st.write(df.head())
-    
-    # Предполагаем, что последняя колонка — это целевая переменная
-    X = df.drop(columns=['Diabetes'])  # Замените 'target' на название вашей целевой переменной
-    y = df['Diabetes']  # Целевая переменная
+# Загружаем данные
+df = pd.read_csv(file_path)
 
-    # Разделяем данные на обучающую и тестовую выборки
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Отображаем первые 5 строк данных
+st.write("Загруженные данные:")
+st.dataframe(df.head())
 
-    # Нормализация данных
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+# Разделяем данные на признаки и целевую переменную
+X = df.drop(columns=['Diabetes'])  # Удаляем столбец target (предположим, что это ваша целевая переменная)
+y = df['Diabetes']  # Целевая переменная
 
-    # Инициализация модели
-    model = CatBoostClassifier(iterations=150, l2_leaf_reg=6, learning_rate=0.05, max_depth=6, rsm=0.3, verbose=0)
+# Нормализуем данные
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
+# Разделяем данные на обучающую и тестовую выборки
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-    # Обучение модели
-    model.fit(X_train_scaled, y_train)
+# Создаем и обучаем модель
+model = CatBoostClassifier(iterations=150, l2_leaf_reg=6, learning_rate=0.05, max_depth=6, rsm=0.3, verbose=0)
+model.fit(X_train, y_train)
 
-    # Прогнозы
-    y_pred = model.predict(X_test_scaled)
+# Прогнозы на тестовой выборке
+y_pred = model.predict(X_test)
 
-    # Метрики
-    accuracy = accuracy_score(y_test, y_pred)
+# Показываем результаты
+st.write("Прогнозы на тестовой выборке:", y_pred)
 
-    # Выводим результаты
-    st.write(f"Точность модели: {accuracy:.4f}")
+# Можете также показать метрики качества
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+st.write(f"Accuracy: {accuracy:.3f}")
+st.write(f"Precision: {precision:.3f}")
+st.write(f"Recall: {recall:.3f}")
+st.write(f"F1-Score: {f1:.3f}")
