@@ -2,6 +2,6 @@ streamlit
 pandas
 numpy
 scikit-learn
-catboost==1.0
+catboost==1.2
 plotly
 cython==0.29.24
