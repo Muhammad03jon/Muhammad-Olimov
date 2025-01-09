@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 import plotly.express as px
+import requests
 
 
 # Заголовок приложения
@@ -95,8 +96,12 @@ with st.expander('Входные данные'):
     st.write('**Совмещенные данные** (входные данные + оригинальные данные)')
     st.dataframe(input_diabetes)
 
-# Загрузка модели
-model = joblib.load(r"https://raw.github.com/Muhammad03jon/Muhammad-Olimov/blob/master/catboost_model.pkl")  # Замените на путь к вашей модели
+url = "https://raw.githubusercontent.com/Muhammad03jon/Muhammad-Olimov/main/catboost_model.pkl"
+
+# Локальный путь для сохранения модели
+local_model_path = "catboost_model.pkl"
+
+model = joblib.load(local_model_path)
 
 # Прогнозирование
 input_row = input_df
